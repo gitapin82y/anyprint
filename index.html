@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anyprint - Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  @keyframes pulseScale {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-qris {
+    animation: pulseScale 1.8s ease-in-out infinite;
+  }
+</style>
+
+</head>
+<body class="bg-[#f1f5ff] font-sans">
+  <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">A</div>
+      <h1 class="font-semibold text-gray-800 text-lg">Anyprint</h1>
+    </div>
+    <p class="text-gray-500 text-sm">Smart Printing Solutions</p>
+  </header>
+
+  <main class="flex flex-col items-center justify-center min-h-[80vh]">
+    <div class="bg-white rounded-2xl shadow-lg p-8 w-[90%] max-w-md text-center">
+      <h2 class="text-2xl font-bold mb-2">Upload Your Files</h2>
+      <p class="text-gray-600 mb-6">Scan the QR code below with your phone to upload documents for printing</p>
+
+      <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-4 inline-block rounded-xl mb-4 animate-qris">
+        <div class="bg-white w-40 h-40 flex items-center justify-center font-bold text-3xl text-gray-800">▩</div>
+      </div>
+
+      <p class="text-gray-500 mb-4">Or upload directly from this device</p>
+      <a href="review.html" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">Choose Files</a>
+
+    </div>
+
+    <footer class="text-center text-gray-400 text-xs mt-6">
+Supported formats: PDF, DOC, DOCX, JPG, PNG
+  </footer>
+  </main>
+
+</body>
+</html>

@@ -1,12 +1,12 @@
 <?php
 // Database Configuration
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'root');
-define('DB_NAME', 'anyprint_db');
+define('DB_USER', 'u1573484_anyprint');
+define('DB_PASS', 'anyprint123');
+define('DB_NAME', 'u1573484_anyprint');
 
 // Site Configuration
-define('SITE_URL', 'http://localhost/anyprint');
+define('SITE_URL', 'https://anyprint.my.id/');
 define('ADMIN_URL', SITE_URL . '/admin');
 
 // Pricing Configuration

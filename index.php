@@ -100,27 +100,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
                     $destination = $upload_dir . $new_filename;
                     
                     // Move uploaded file
-                    if (move_uploaded_file($file_tmp, $destination)) {
-                        // Detect number of pages
-                        $pages = detectPages($destination, $file_ext);
-                        
-                        // Get file size in readable format
-                        $file_size_formatted = formatFileSize($file_size);
-                        
-                        // Save to database
-                        $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
-                        $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
-                        
-                        if ($stmt->execute()) {
-                            $uploaded_count++;
-                        } else {
-                            $error .= "Database error for '$file_name': " . $stmt->error . " ";
-                        }
-                        
-                        $stmt->close();
-                    } else {
-                        $error .= "Failed to move '$file_name'. Check permissions. ";
-                    }
+                   if (move_uploaded_file($file_tmp, $destination)) {
+    // Detect number of pages with error handling
+    try {
+        $pages = detectPages($destination, $file_ext);
+        
+        // Validate pages number
+        if ($pages < 1 || $pages > 10000) {
+            $pages = 1;
+            error_log("Invalid page count detected for {$file_name}, defaulting to 1");
+        }
+    } catch (Exception $e) {
+        $pages = 1;
+        error_log("Page detection error for {$file_name}: " . $e->getMessage());
+    }
+    
+    // Get file size in readable format
+    $file_size_formatted = formatFileSize($file_size);
+    
+    // Save to database
+    $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
+    
+    if ($stmt->execute()) {
+        $uploaded_count++;
+    } else {
+        $error .= "Database error for '$file_name': " . $stmt->error . " ";
+        error_log("Database insert failed: " . $stmt->error);
+    }
+    
+    $stmt->close();
+} else {
+    $error .= "Failed to move '$file_name'. Check permissions. ";
+    error_log("File move failed: $file_name to $destination");
+}
                 }
             }
             

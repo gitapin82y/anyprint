@@ -76,44 +76,86 @@ function formatFileSize($bytes) {
 }
 
 function detectPages($file_path, $file_ext) {
-    $pages = 1; // Default 1 page for images
+    $pages = 1; // Default 1 page
     
     if ($file_ext === 'pdf') {
-        // Method 1: Using pdfinfo (if available on server)
-        if (function_exists('exec')) {
-            $output = [];
-            exec("pdfinfo " . escapeshellarg($file_path) . " | grep Pages:", $output);
-            if (!empty($output)) {
-                preg_match('/\d+/', $output[0], $matches);
-                if (isset($matches[0])) {
-                    return intval($matches[0]);
+        try {
+            // Method 1: Try pdfinfo command (if available)
+            if (function_exists('exec') && !stristr(ini_get('disable_functions'), 'exec')) {
+                $output = [];
+                $return_var = 0;
+                @exec("pdfinfo " . escapeshellarg($file_path) . " 2>&1 | grep -i Pages:", $output, $return_var);
+                
+                if ($return_var === 0 && !empty($output)) {
+                    if (preg_match('/(\d+)/', $output[0], $matches)) {
+                        $detected_pages = intval($matches[1]);
+                        if ($detected_pages > 0) {
+                            return $detected_pages;
+                        }
+                    }
                 }
             }
+            
+            // Method 2: Parse PDF content
+            if (file_exists($file_path) && is_readable($file_path)) {
+                $content = @file_get_contents($file_path);
+                
+                if ($content !== false) {
+                    // Try multiple patterns
+                    $patterns = [
+                        "/\/Count\s+(\d+)/",           // Most common
+                        "/\/N\s+(\d+)/",                // Alternative
+                        "/\/Page\W/",                   // Count /Page occurrences
+                        "/\/Type\s*\/Page[^s]/"        // Count /Type /Page
+                    ];
+                    
+                    foreach ($patterns as $pattern) {
+                        if ($pattern === "/\/Count\s+(\d+)/" || $pattern === "/\/N\s+(\d+)/") {
+                            if (preg_match($pattern, $content, $matches)) {
+                                $detected_pages = intval($matches[1]);
+                                if ($detected_pages > 0 && $detected_pages < 10000) {
+                                    return $detected_pages;
+                                }
+                            }
+                        } else {
+                            preg_match_all($pattern, $content, $matches);
+                            if (count($matches[0]) > 0) {
+                                $detected_pages = count($matches[0]);
+                                if ($detected_pages > 0 && $detected_pages < 10000) {
+                                    return $detected_pages;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Silent fail, return default
+            error_log("PDF page detection failed: " . $e->getMessage());
         }
         
-        // Method 2: Using regex to count pages in PDF
-        $content = file_get_contents($file_path);
-        $pattern = "/\/Page\W/";
-        preg_match_all($pattern, $content, $matches);
-        $pages = count($matches[0]);
-        
-        // Fallback if no pages detected
-        if ($pages === 0) {
-            // Alternative method: count /Type /Page
-            $pattern = "/\/Type\s*\/Page[^s]/";
-            preg_match_all($pattern, $content, $matches);
-            $pages = count($matches[0]);
-        }
-        
-        return $pages > 0 ? $pages : 1;
-    } elseif (in_array($file_ext, ['doc', 'docx'])) {
-        // For Word documents, we estimate based on file size
-        // Average: 1 page = ~50KB (rough estimation)
+        // Fallback: estimate based on file size
         $file_size = filesize($file_path);
-        $estimated_pages = max(1, round($file_size / (50 * 1024)));
-        return $estimated_pages;
+        if ($file_size > 0) {
+            // Average: 1 page PDF ≈ 50-100KB
+            $estimated = max(1, round($file_size / (75 * 1024)));
+            return min($estimated, 100); // Cap at 100 pages for safety
+        }
+        
+        return 1; // Ultimate fallback
+        
+    } elseif (in_array($file_ext, ['doc', 'docx'])) {
+        // For Word documents - estimate based on file size
+        $file_size = @filesize($file_path);
+        if ($file_size > 0) {
+            // Average: 1 page ≈ 50KB for Word docs
+            $estimated_pages = max(1, round($file_size / (50 * 1024)));
+            return min($estimated_pages, 200); // Cap at 200 pages
+        }
+        return 1;
+        
     } else {
-        // For images (jpg, png), always 1 page
+        // For images (jpg, png) - always 1 page
         return 1;
     }
 }

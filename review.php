@@ -92,6 +92,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
   <title>Anyprint - Review</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- TAMBAHKAN INI -->
 </head>
 <body class="bg-[#f1f5ff] font-sans">
   <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
@@ -139,9 +140,9 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
               <p class="text-sm text-gray-400"><?php echo $file['file_pages']; ?> page<?php echo $file['file_pages'] > 1 ? 's' : ''; ?> • <?php echo $file['file_size']; ?></p>
             </div>
           </div>
-          <a href="?delete=<?php echo $file['id']; ?>" onclick="return confirm('Delete this file?')" class="text-gray-400 hover:text-red-500 transition">
-            <i class="fa-solid fa-trash text-lg"></i>
-          </a>
+<button onclick="confirmDelete(<?php echo $file['id']; ?>)" class="text-gray-400 hover:text-red-500 transition">
+  <i class="fa-solid fa-trash text-lg"></i>
+</button>
         </div>
         <?php endforeach; ?>
       </div>
@@ -189,26 +190,55 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     </div>
   </main>
 
-  <script>
-    const totalPages = <?php echo $total_pages; ?>;
-    const colorSelect = document.getElementById('colorType');
-    const copiesInput = document.getElementById('copies');
-    const summaryText = document.getElementById('summaryText');
-    const totalPriceEl = document.getElementById('totalPrice');
+ <script>
+  const totalPages = <?php echo $total_pages; ?>;
+  const colorSelect = document.getElementById('colorType');
+  const copiesInput = document.getElementById('copies');
+  const summaryText = document.getElementById('summaryText');
+  const totalPriceEl = document.getElementById('totalPrice');
 
-    function updatePrice() {
-      const color = colorSelect.value;
-      const copies = parseInt(copiesInput.value) || 1;
-      let pricePerPage = color === 'Color' ? <?php echo PRICE_COLOR; ?> : <?php echo PRICE_BW; ?>;
-      const total = totalPages * pricePerPage * copies;
+  function updatePrice() {
+    const color = colorSelect.value;
+    const copies = parseInt(copiesInput.value) || 1;
+    let pricePerPage = color === 'Color' ? <?php echo PRICE_COLOR; ?> : <?php echo PRICE_BW; ?>;
+    const total = totalPages * pricePerPage * copies;
 
-      summaryText.textContent = `${totalPages} pages × $${pricePerPage.toFixed(2)} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
-      totalPriceEl.textContent = `$${total.toFixed(2)}`;
-    }
+    summaryText.textContent = `${totalPages} pages × $${pricePerPage.toFixed(2)} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
+    totalPriceEl.textContent = `$${total.toFixed(2)}`;
+  }
 
-    colorSelect.addEventListener('change', updatePrice);
-    copiesInput.addEventListener('input', updatePrice);
-    updatePrice();
-  </script>
+  colorSelect.addEventListener('change', updatePrice);
+  copiesInput.addEventListener('input', updatePrice);
+  updatePrice();
+
+  // SweetAlert2 Delete Confirmation
+  function confirmDelete(fileId) {
+    Swal.fire({
+      title: 'Delete File?',
+      text: "This action cannot be undone!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: 'Deleting...',
+          text: 'Please wait',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        
+        // Redirect to delete
+        window.location.href = '?delete=' + fileId;
+      }
+    });
+  }
+</script>
 </body>
 </html>

@@ -1,85 +1,137 @@
 <?php
 require_once 'includes/config.php';
 
-// Create new order session
-if (!isset($_SESSION['order_id'])) {
-    $order_number = generateOrderNumber();
-    $customer_ip = getClientIP();
-    
-    $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_ip) VALUES (?, ?)");
-    $stmt->bind_param("ss", $order_number, $customer_ip);
-    $stmt->execute();
-    
-    $_SESSION['order_id'] = $conn->insert_id;
-    $_SESSION['order_number'] = $order_number;
-    $stmt->close();
-}
+// Debug mode - hapus setelah masalah selesai
+// ini_set('display_errors', 1);
+// error_reporting(E_ALL);
 
 $error = '';
 $success = '';
+$debug_info = '';
+
+// Create new order session - PASTIKAN INI JALAN
+if (!isset($_SESSION['order_id']) || empty($_SESSION['order_id'])) {
+    $order_number = generateOrderNumber();
+    $customer_ip = getClientIP();
+    
+    $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_ip, order_status, payment_status) VALUES (?, ?, 'pending', 'pending')");
+    $stmt->bind_param("ss", $order_number, $customer_ip);
+    
+    if ($stmt->execute()) {
+        $_SESSION['order_id'] = $conn->insert_id;
+        $_SESSION['order_number'] = $order_number;
+        $debug_info = "Order created: " . $_SESSION['order_id'];
+    } else {
+        die("FATAL: Cannot create order - " . $conn->error);
+    }
+    
+    $stmt->close();
+}
+
+// Verify order exists in database
+$order_id = $_SESSION['order_id'];
+$verify = $conn->query("SELECT id, order_number FROM orders WHERE id = " . intval($order_id));
+if ($verify->num_rows === 0) {
+    // Order tidak ditemukan, buat baru
+    unset($_SESSION['order_id']);
+    unset($_SESSION['order_number']);
+    header("Location: index.php");
+    exit;
+}
 
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
-    $order_id = $_SESSION['order_id'];
-    $upload_dir = 'uploads/' . $order_id . '/';
+    $order_id = intval($_SESSION['order_id']);
     
-    // Create upload directory if not exists
-    if (!file_exists($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
-    }
-    
-    $files = $_FILES['documents'];
-    $file_count = count($files['name']);
-    $uploaded_count = 0;
-    
-    for ($i = 0; $i < $file_count; $i++) {
-        if ($files['error'][$i] === UPLOAD_ERR_OK) {
-            $file_name = $files['name'][$i];
-            $file_tmp = $files['tmp_name'][$i];
-            $file_size = $files['size'][$i];
-            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            
-            // Validate file type
-            $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
-            if (!in_array($file_ext, $allowed_types)) {
-                $error .= "File $file_name: Format tidak didukung. ";
-                continue;
-            }
-            
-            // Validate file size (max 10MB)
-            if ($file_size > 10 * 1024 * 1024) {
-                $error .= "File $file_name: Ukuran terlalu besar (max 10MB). ";
-                continue;
-            }
-            
-            // Generate unique filename
-            $new_filename = time() . '_' . $i . '_' . preg_replace('/[^a-zA-Z0-9_.-]/', '', $file_name);
-            $destination = $upload_dir . $new_filename;
-            
-            if (move_uploaded_file($file_tmp, $destination)) {
-                // Detect number of pages
-                $pages = detectPages($destination, $file_ext);
-                
-                // Get file size in readable format
-                $file_size_formatted = formatFileSize($file_size);
-                
-                // Save to database
-                $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
-                $stmt->execute();
-                $stmt->close();
-                
-                $uploaded_count++;
-            } else {
-                $error .= "Gagal upload file $file_name. ";
+    // Double check order exists
+    $check = $conn->query("SELECT id FROM orders WHERE id = $order_id");
+    if ($check->num_rows === 0) {
+        $error = "Order not found in database. Order ID: $order_id";
+    } else {
+        $upload_dir = 'uploads/' . $order_id . '/';
+        
+        // Create upload directory if not exists
+        if (!file_exists('uploads/')) {
+            if (!mkdir('uploads/', 0777, true)) {
+                $error = "Cannot create uploads folder. Check permissions.";
             }
         }
-    }
-    
-    if ($uploaded_count > 0) {
-        $success = "$uploaded_count file berhasil diupload!";
-        // Redirect to review page after 1 second
-        header("refresh:1;url=review.php");
+        
+        if (empty($error) && !file_exists($upload_dir)) {
+            if (!mkdir($upload_dir, 0777, true)) {
+                $error = "Cannot create order folder. Check permissions.";
+            }
+        }
+        
+        if (empty($error)) {
+            $uploaded_count = 0;
+            $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+            
+            // Handle multiple files
+            if (isset($_FILES['documents']['name']) && is_array($_FILES['documents']['name'])) {
+                $file_count = count($_FILES['documents']['name']);
+                
+                for ($i = 0; $i < $file_count; $i++) {
+                    // Skip if no file or error
+                    if (empty($_FILES['documents']['name'][$i]) || $_FILES['documents']['error'][$i] !== UPLOAD_ERR_OK) {
+                        continue;
+                    }
+                    
+                    $file_name = basename($_FILES['documents']['name'][$i]);
+                    $file_tmp = $_FILES['documents']['tmp_name'][$i];
+                    $file_size = $_FILES['documents']['size'][$i];
+                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                    
+                    // Validate file type
+                    if (!in_array($file_ext, $allowed_types)) {
+                        $error .= "File '$file_name': Format tidak didukung. ";
+                        continue;
+                    }
+                    
+                    // Validate file size (max 10MB)
+                    if ($file_size > 10 * 1024 * 1024) {
+                        $error .= "File '$file_name': Ukuran terlalu besar (max 10MB). ";
+                        continue;
+                    }
+                    
+                    // Generate unique filename
+                    $safe_name = preg_replace('/[^a-zA-Z0-9_.-]/', '_', pathinfo($file_name, PATHINFO_FILENAME));
+                    $new_filename = time() . '_' . $i . '_' . $safe_name . '.' . $file_ext;
+                    $destination = $upload_dir . $new_filename;
+                    
+                    // Move uploaded file
+                    if (move_uploaded_file($file_tmp, $destination)) {
+                        // Detect number of pages
+                        $pages = detectPages($destination, $file_ext);
+                        
+                        // Get file size in readable format
+                        $file_size_formatted = formatFileSize($file_size);
+                        
+                        // Save to database
+                        $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
+                        $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
+                        
+                        if ($stmt->execute()) {
+                            $uploaded_count++;
+                        } else {
+                            $error .= "Database error for '$file_name': " . $stmt->error . " ";
+                        }
+                        
+                        $stmt->close();
+                    } else {
+                        $error .= "Failed to move '$file_name'. Check permissions. ";
+                    }
+                }
+            }
+            
+            if ($uploaded_count > 0) {
+                $success = "$uploaded_count file berhasil diupload!";
+                // Redirect to review page after 1.5 seconds
+                header("refresh:1.5;url=review.php");
+            } elseif (empty($error)) {
+                $error = "No files were uploaded. Please select at least one file.";
+            }
+        }
     }
 }
 ?>
@@ -146,7 +198,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
         <div class="bg-white w-40 h-40 flex items-center justify-center font-bold text-3xl text-gray-800">▩</div>
       </div>
 
-      <p class="text-gray-500 text-sm mb-2">Order Number: <strong><?php echo $_SESSION['order_number']; ?></strong></p>
+      <p class="text-gray-500 text-sm mb-4">Order Number: <strong><?php echo htmlspecialchars($_SESSION['order_number']); ?></strong></p>
+
+      <?php if ($debug_info && false): // Set true untuk debug ?>
+      <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg mb-4 text-xs text-left">
+        Debug: <?php echo $debug_info; ?> | Session ID: <?php echo $_SESSION['order_id']; ?>
+      </div>
+      <?php endif; ?>
 
       <?php if ($error): ?>
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm text-left">
@@ -157,6 +215,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
       <?php if ($success): ?>
       <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
         <i class="fa-solid fa-circle-check mr-1"></i> <?php echo $success; ?>
+        <div class="mt-2">
+          <i class="fa-solid fa-spinner fa-spin mr-1"></i> Redirecting to review page...
+        </div>
       </div>
       <?php endif; ?>
 
@@ -169,8 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
         </div>
 
         <div id="fileList" class="mb-4 text-left text-sm text-gray-600 hidden">
-          <p class="font-semibold mb-2">Selected files:</p>
-          <ul id="fileNames" class="list-disc pl-5 space-y-1"></ul>
+          <p class="font-semibold mb-2">Selected files (<span id="fileCount">0</span>):</p>
+          <ul id="fileNames" class="list-disc pl-5 space-y-1 max-h-40 overflow-y-auto"></ul>
         </div>
 
         <button type="submit" id="uploadBtn" class="bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition disabled:opacity-50" disabled>
@@ -189,6 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     const fileInput = document.getElementById('fileInput');
     const fileList = document.getElementById('fileList');
     const fileNames = document.getElementById('fileNames');
+    const fileCount = document.getElementById('fileCount');
     const uploadBtn = document.getElementById('uploadBtn');
 
     fileInput.addEventListener('change', function() {
@@ -197,10 +259,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
       if (files.length > 0) {
         fileList.classList.remove('hidden');
         fileNames.innerHTML = '';
+        fileCount.textContent = files.length;
         
         for (let i = 0; i < files.length; i++) {
           const li = document.createElement('li');
-          li.textContent = files[i].name + ' (' + formatBytes(files[i].size) + ')';
+          li.className = 'text-gray-700';
+          li.innerHTML = `<strong>${files[i].name}</strong> <span class="text-gray-400">(${formatBytes(files[i].size)})</span>`;
           fileNames.appendChild(li);
         }
         
@@ -220,8 +284,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     }
 
     // Show loading when form submitted
-    document.getElementById('uploadForm').addEventListener('submit', function() {
-      uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...';
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      const files = fileInput.files;
+      if (files.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one file!');
+        return false;
+      }
+      
+      uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading ' + files.length + ' file(s)...';
       uploadBtn.disabled = true;
     });
   </script>

@@ -9,142 +9,80 @@ $error = '';
 $success = '';
 $debug_info = '';
 
-// Create new order session - PASTIKAN INI JALAN
-if (!isset($_SESSION['order_id']) || empty($_SESSION['order_id'])) {
-    $order_number = generateOrderNumber();
-    $customer_ip = getClientIP();
-    
-    $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_ip, order_status, payment_status) VALUES (?, ?, 'pending', 'pending')");
-    $stmt->bind_param("ss", $order_number, $customer_ip);
-    
-    if ($stmt->execute()) {
-        $_SESSION['order_id'] = $conn->insert_id;
-        $_SESSION['order_number'] = $order_number;
-        $debug_info = "Order created: " . $_SESSION['order_id'];
-    } else {
-        die("FATAL: Cannot create order - " . $conn->error);
-    }
-    
-    $stmt->close();
-}
-
-// Verify order exists in database
-$order_id = $_SESSION['order_id'];
-$verify = $conn->query("SELECT id, order_number FROM orders WHERE id = " . intval($order_id));
-if ($verify->num_rows === 0) {
-    // Order tidak ditemukan, buat baru
-    unset($_SESSION['order_id']);
-    unset($_SESSION['order_number']);
-    header("Location: index.php");
-    exit;
-}
+// Hanya tampilkan order number jika sudah ada session
+$order_number_display = isset($_SESSION['order_number']) ? $_SESSION['order_number'] : 'Waiting...';
 
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
-    $order_id = intval($_SESSION['order_id']);
+    // Simpan files ke temporary session array (TIDAK ke database)
+    if (!isset($_SESSION['temp_files'])) {
+        $_SESSION['temp_files'] = [];
+    }
     
-    // Double check order exists
-    $check = $conn->query("SELECT id FROM orders WHERE id = $order_id");
-    if ($check->num_rows === 0) {
-        $error = "Order not found in database. Order ID: $order_id";
-    } else {
-        $upload_dir = 'uploads/' . $order_id . '/';
+    $uploaded_count = 0;
+    $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+    
+    // Handle multiple files
+    if (isset($_FILES['documents']['name']) && is_array($_FILES['documents']['name'])) {
+        $file_count = count($_FILES['documents']['name']);
         
-        // Create upload directory if not exists
-        if (!file_exists('uploads/')) {
-            if (!mkdir('uploads/', 0777, true)) {
-                $error = "Cannot create uploads folder. Check permissions.";
+        for ($i = 0; $i < $file_count; $i++) {
+            // Skip if no file or error
+            if (empty($_FILES['documents']['name'][$i]) || $_FILES['documents']['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
             }
-        }
-        
-        if (empty($error) && !file_exists($upload_dir)) {
-            if (!mkdir($upload_dir, 0777, true)) {
-                $error = "Cannot create order folder. Check permissions.";
-            }
-        }
-        
-        if (empty($error)) {
-            $uploaded_count = 0;
-            $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
             
-            // Handle multiple files
-            if (isset($_FILES['documents']['name']) && is_array($_FILES['documents']['name'])) {
-                $file_count = count($_FILES['documents']['name']);
-                
-                for ($i = 0; $i < $file_count; $i++) {
-                    // Skip if no file or error
-                    if (empty($_FILES['documents']['name'][$i]) || $_FILES['documents']['error'][$i] !== UPLOAD_ERR_OK) {
-                        continue;
+            $file_name = basename($_FILES['documents']['name'][$i]);
+            $file_tmp = $_FILES['documents']['tmp_name'][$i];
+            $file_size = $_FILES['documents']['size'][$i];
+            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            
+            // Validate file type
+            if (!in_array($file_ext, $allowed_types)) {
+                $error .= "File '$file_name': Format tidak didukung. ";
+                continue;
+            }
+            
+            // Validate file size (max 10MB)
+            if ($file_size > 10 * 1024 * 1024) {
+                $error .= "File '$file_name': Ukuran terlalu besar (max 10MB). ";
+                continue;
+            }
+            
+            // Detect pages
+            try {
+                // For PDF, try to detect pages from tmp file
+                $pages = 1;
+                if ($file_ext === 'pdf' && file_exists($file_tmp)) {
+                    $pages = detectPages($file_tmp, $file_ext);
+                    if ($pages < 1 || $pages > 10000) {
+                        $pages = 1;
                     }
-                    
-                    $file_name = basename($_FILES['documents']['name'][$i]);
-                    $file_tmp = $_FILES['documents']['tmp_name'][$i];
-                    $file_size = $_FILES['documents']['size'][$i];
-                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-                    
-                    // Validate file type
-                    if (!in_array($file_ext, $allowed_types)) {
-                        $error .= "File '$file_name': Format tidak didukung. ";
-                        continue;
-                    }
-                    
-                    // Validate file size (max 10MB)
-                    if ($file_size > 10 * 1024 * 1024) {
-                        $error .= "File '$file_name': Ukuran terlalu besar (max 10MB). ";
-                        continue;
-                    }
-                    
-                    // Generate unique filename
-                    $safe_name = preg_replace('/[^a-zA-Z0-9_.-]/', '_', pathinfo($file_name, PATHINFO_FILENAME));
-                    $new_filename = time() . '_' . $i . '_' . $safe_name . '.' . $file_ext;
-                    $destination = $upload_dir . $new_filename;
-                    
-                    // Move uploaded file
-                   if (move_uploaded_file($file_tmp, $destination)) {
-    // Detect number of pages with error handling
-    try {
-        $pages = detectPages($destination, $file_ext);
-        
-        // Validate pages number
-        if ($pages < 1 || $pages > 10000) {
-            $pages = 1;
-            error_log("Invalid page count detected for {$file_name}, defaulting to 1");
-        }
-    } catch (Exception $e) {
-        $pages = 1;
-        error_log("Page detection error for {$file_name}: " . $e->getMessage());
-    }
-    
-    // Get file size in readable format
-    $file_size_formatted = formatFileSize($file_size);
-    
-    // Save to database
-    $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
-    
-    if ($stmt->execute()) {
-        $uploaded_count++;
-    } else {
-        $error .= "Database error for '$file_name': " . $stmt->error . " ";
-        error_log("Database insert failed: " . $stmt->error);
-    }
-    
-    $stmt->close();
-} else {
-    $error .= "Failed to move '$file_name'. Check permissions. ";
-    error_log("File move failed: $file_name to $destination");
-}
                 }
+            } catch (Exception $e) {
+                $pages = 1;
             }
             
-            if ($uploaded_count > 0) {
-                $success = "$uploaded_count file berhasil diupload!";
-                // Redirect to review page after 1.5 seconds
-                header("refresh:1.5;url=review.php");
-            } elseif (empty($error)) {
-                $error = "No files were uploaded. Please select at least one file.";
-            }
+            // Save file info to session (temporary)
+            $_SESSION['temp_files'][] = [
+                'name' => $file_name,
+                'tmp_name' => $file_tmp,
+                'size' => $file_size,
+                'size_formatted' => formatFileSize($file_size),
+                'ext' => $file_ext,
+                'pages' => $pages
+            ];
+            
+            $uploaded_count++;
         }
+    }
+    
+    if ($uploaded_count > 0) {
+        $success = "$uploaded_count file berhasil diupload!";
+        // Redirect to review page after 1.5 seconds
+        header("refresh:1.5;url=review.php");
+    } elseif (empty($error)) {
+        $error = "No files were uploaded. Please select at least one file.";
     }
 }
 ?>
@@ -220,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
       <img src="assets/qris.jpg" width="200px" alt="">
       </div>
 
-      <p class="text-gray-500 text-sm mb-4">Order Number: <strong><?php echo htmlspecialchars($_SESSION['order_number']); ?></strong></p>
+      <p class="text-gray-500 text-sm mb-4">Order Number: <strong>Will be generated after review</strong></p>
 
       <?php if ($debug_info && false): // Set true untuk debug ?>
       <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg mb-4 text-xs text-left">

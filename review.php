@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total_price = $total_pages * $price_per_page * $copies;
     
     // CREATE ORDER - BARU DI SINI dengan data LENGKAP
-    $order_number = generateOrderNumber();
+    $order_number = isset($_SESSION['temp_order_number']) ? $_SESSION['temp_order_number'] : generateOrderNumber();
+
     $customer_ip = getClientIP();
     
     $stmt = $conn->prepare("INSERT INTO orders (order_number, total_pages, paper_size, color_type, copies, price_per_page, total_price, customer_ip, order_status, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')");

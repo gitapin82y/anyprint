@@ -9,8 +9,11 @@ $error = '';
 $success = '';
 $debug_info = '';
 
-// Hanya tampilkan order number jika sudah ada session
-$order_number_display = isset($_SESSION['order_number']) ? $_SESSION['order_number'] : 'Waiting...';
+// Generate order number untuk display (disimpan di session, belum ke database)
+if (!isset($_SESSION['temp_order_number'])) {
+    $_SESSION['temp_order_number'] = generateOrderNumber();
+}
+$order_number_display = $_SESSION['temp_order_number'];
 
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
@@ -158,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
       <img src="assets/qris.jpg" width="200px" alt="">
       </div>
 
-      <p class="text-gray-500 text-sm mb-4">Order Number: <strong>Will be generated after review</strong></p>
+<p class="text-gray-500 text-sm mb-4">Order Number: <strong><?php echo htmlspecialchars($order_number_display); ?></strong></p>
 
       <?php if ($debug_info && false): // Set true untuk debug ?>
       <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg mb-4 text-xs text-left">

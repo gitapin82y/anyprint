@@ -46,10 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Admin Login - Anyprint</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-[#1D4A80] to-[#828275] min-h-screen flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md">
     <div class="text-center mb-6">
-      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center font-bold text-2xl mx-auto mb-4">A</div>
       <h1 class="text-2xl font-bold text-gray-800">Anyprint Admin</h1>
       <p class="text-gray-600 text-sm">Login to access dashboard</p>
     </div>
@@ -71,9 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter password" />
     </div>
 
-      <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium py-3 rounded-lg hover:opacity-90 transition">
+      <button type="submit" class="w-full bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white font-medium py-3 rounded-lg hover:opacity-90 transition">
         Login
       </button>
+  
     </form>
 
   </div>

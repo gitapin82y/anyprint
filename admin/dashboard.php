@@ -72,6 +72,12 @@ $orders = $stmt->get_result();
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - Anyprint</title>
+  <!-- Favicon -->
+<link rel="icon" type="image/jpeg" href="../assets/logo-anyprint.jpeg" />
+<link rel="apple-touch-icon" href="../assets/logo-anyprint.jpeg" />
+<link rel="shortcut icon" type="image/x-icon" href="../assets/logo-anyprint.jpeg" />
+<meta name="theme-color" content="#1A2E55" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -82,9 +88,9 @@ $orders = $stmt->get_result();
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-4">
         <div class="flex items-center gap-3">
-          <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">A</div>
+          <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white rounded-full flex items-center justify-center font-bold">    <img src="../assets/logo-anyprint.jpeg" width="150px" alt=""></div>
           <div>
-            <h1 class="text-xl font-bold text-gray-800">Anyprint Admin</h1>
+            <h1 class="text-xl font-bold text-gray-800">Admin</h1>
             <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?></p>
           </div>
         </div>
@@ -95,9 +101,11 @@ $orders = $stmt->get_result();
     </div>
   </header>
 
+  <small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>
+
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 grid-cols-2 md:grid-cols-4 gap-6 mb-8">
       <div class="bg-white rounded-xl shadow p-6">
         <div class="flex items-center justify-between">
           <div>
@@ -295,7 +303,7 @@ $orders = $stmt->get_result();
       text: `Change order status to ${status}?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
+      confirmButtonColor: '#1A2E55',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, update it!'
     }).then((result) => {

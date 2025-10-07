@@ -58,6 +58,12 @@ if ($payment_success) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anyprint - Payment Simulation</title>
+  <!-- Favicon -->
+<link rel="icon" type="image/jpeg" href="assets/logo-anyprint.jpeg" />
+<link rel="apple-touch-icon" href="assets/logo-anyprint.jpeg" />
+<link rel="shortcut icon" type="image/x-icon" href="assets/logo-anyprint.jpeg" />
+<meta name="theme-color" content="#1A2E55" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
@@ -78,11 +84,12 @@ if ($payment_success) {
 <body class="bg-[#f1f5ff] font-sans">
   <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">A</div>
-      <h1 class="font-semibold text-gray-800 text-lg">Anyprint</h1>
+      <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
     </div>
     <p class="text-gray-500 text-sm">Payment</p>
   </header>
+
+  <small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>
 
   <main class="flex flex-col items-center justify-center min-h-[80vh]">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-[90%] max-w-md text-center">
@@ -96,8 +103,8 @@ if ($payment_success) {
           <?php echo $order['total_pages']; ?> pages • <?php echo $order['color_type']; ?> • <?php echo $order['copies']; ?> cop<?php echo $order['copies'] > 1 ? 'ies' : 'y'; ?>
         </p>
         <p id="orderPrice" class="text-3xl font-bold text-blue-600 mb-4"><?php echo formatPrice($order['total_price']); ?></p>
-        <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-4 inline-block rounded-xl animate-qris">
-          <div class="bg-white w-40 h-40 flex items-center justify-center font-bold text-3xl text-gray-800">▦</div>
+        <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] p-4 inline-block rounded-xl animate-qris">
+            <img src="assets/qris.jpg" width="200px" alt="">
         </div>
       </div>
 
@@ -129,7 +136,7 @@ if ($payment_success) {
         <p class="text-gray-600 mt-2">Your documents are now printing.<br>
         Please collect them from the output tray.</p>
         <p class="text-sm text-gray-500 mt-2">Order #: <strong><?php echo $completed_order; ?></strong></p>
-        <button id="printAnother" class="mt-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition">
+        <button id="printAnother" class="mt-5 bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition">
           Print Another Document
         </button>
       `,

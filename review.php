@@ -90,6 +90,12 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anyprint - Review</title>
+  <!-- Favicon -->
+<link rel="icon" type="image/jpeg" href="assets/logo-anyprint.jpeg" />
+<link rel="apple-touch-icon" href="assets/logo-anyprint.jpeg" />
+<link rel="shortcut icon" type="image/x-icon" href="assets/logo-anyprint.jpeg" />
+<meta name="theme-color" content="#1A2E55" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- TAMBAHKAN INI -->
@@ -97,11 +103,12 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
 <body class="bg-[#f1f5ff] font-sans">
   <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">A</div>
-      <h1 class="font-semibold text-gray-800 text-lg">Anyprint</h1>
-    </div>
+    <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
+    </img>
     <p class="text-gray-500 text-sm">File Preview</p>
   </header>
+
+  <small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>
 
   <main class="flex flex-col items-center justify-center py-12">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-[90%] max-w-2xl">
@@ -183,7 +190,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
           <p id="totalPrice" class="text-xl font-bold text-blue-600"></p>
         </div>
 
-        <button type="submit" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
+        <button type="submit" class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
           Proceed to Payment
         </button>
       </form>

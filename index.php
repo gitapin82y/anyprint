@@ -140,6 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Favicon -->
+<link rel="icon" type="image/jpeg" href="assets/logo-anyprint.jpeg" />
+<link rel="apple-touch-icon" href="assets/logo-anyprint.jpeg" />
+<link rel="shortcut icon" type="image/x-icon" href="assets/logo-anyprint.jpeg" />
+<meta name="theme-color" content="#1A2E55" />
+
   <title>Anyprint - Upload</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -184,19 +190,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
 <body class="bg-[#f1f5ff] font-sans">
   <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">A</div>
-      <h1 class="font-semibold text-gray-800 text-lg">Anyprint</h1>
+    <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
     </div>
     <p class="text-gray-500 text-sm">Smart Printing Solutions</p>
   </header>
+
+<small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>
+
 
   <main class="flex flex-col items-center justify-center min-h-[80vh] py-8">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-[90%] max-w-md text-center">
       <h2 class="text-2xl font-bold mb-2">Upload Your Files</h2>
       <p class="text-gray-600 mb-6">Scan the QR code below with your phone or upload directly from this device</p>
 
-      <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-4 inline-block rounded-xl mb-4 animate-qris">
-        <div class="bg-white w-40 h-40 flex items-center justify-center font-bold text-3xl text-gray-800">▩</div>
+      <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] p-4 inline-block rounded-xl mb-4 animate-qris">
+      <img src="assets/qris.jpg" width="200px" alt="">
       </div>
 
       <p class="text-gray-500 text-sm mb-4">Order Number: <strong><?php echo htmlspecialchars($_SESSION['order_number']); ?></strong></p>
@@ -225,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
       <form method="POST" enctype="multipart/form-data" id="uploadForm">
         <div class="file-upload-wrapper mb-4">
           <input type="file" name="documents[]" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required />
-          <label for="fileInput" class="file-upload-label bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
+          <label for="fileInput" class="file-upload-label bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
             <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Choose Files
           </label>
         </div>
@@ -281,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
           </ul>
           <p class="mt-3 text-sm text-gray-600">These files have been removed from selection.</p>
         `,
-        confirmButtonColor: '#3b82f6'
+        confirmButtonColor: '#1A2E55'
       });
       
       // Reset file input and use DataTransfer to set only valid files

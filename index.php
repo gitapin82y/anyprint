@@ -143,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
   <title>Anyprint - Upload</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
   @keyframes pulseScale {
     0%, 100% {
@@ -246,55 +247,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     </footer>
   </main>
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
-    const fileNames = document.getElementById('fileNames');
-    const fileCount = document.getElementById('fileCount');
-    const uploadBtn = document.getElementById('uploadBtn');
+        <script>
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const fileNames = document.getElementById('fileNames');
+  const fileCount = document.getElementById('fileCount');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
-    fileInput.addEventListener('change', function() {
-      const files = this.files;
-      
-      if (files.length > 0) {
-        fileList.classList.remove('hidden');
-        fileNames.innerHTML = '';
-        fileCount.textContent = files.length;
-        
-        for (let i = 0; i < files.length; i++) {
-          const li = document.createElement('li');
-          li.className = 'text-gray-700';
-          li.innerHTML = `<strong>${files[i].name}</strong> <span class="text-gray-400">(${formatBytes(files[i].size)})</span>`;
-          fileNames.appendChild(li);
-        }
-        
-        uploadBtn.disabled = false;
+  fileInput.addEventListener('change', function() {
+    const files = Array.from(this.files);
+    const validFiles = [];
+    const oversizedFiles = [];
+    
+    // Check each file size
+    files.forEach(file => {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(file.name);
       } else {
-        fileList.classList.add('hidden');
-        uploadBtn.disabled = true;
+        validFiles.push(file);
       }
     });
-
-    function formatBytes(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-
-    // Show loading when form submitted
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-      const files = fileInput.files;
-      if (files.length === 0) {
-        e.preventDefault();
-        alert('Please select at least one file!');
-        return false;
-      }
+    
+    // Show alert if there are oversized files
+    if (oversizedFiles.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large!',
+        html: `
+          <p class="mb-2">The following files exceed 10MB limit:</p>
+          <ul class="text-left list-disc pl-5 text-sm">
+            ${oversizedFiles.map(name => `<li>${name}</li>`).join('')}
+          </ul>
+          <p class="mt-3 text-sm text-gray-600">These files have been removed from selection.</p>
+        `,
+        confirmButtonColor: '#3b82f6'
+      });
       
-      uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading ' + files.length + ' file(s)...';
+      // Reset file input and use DataTransfer to set only valid files
+      const dataTransfer = new DataTransfer();
+      validFiles.forEach(file => {
+        dataTransfer.items.add(file);
+      });
+      fileInput.files = dataTransfer.files;
+    }
+    
+    // Display valid files
+    if (validFiles.length > 0) {
+      fileList.classList.remove('hidden');
+      fileNames.innerHTML = '';
+      fileCount.textContent = validFiles.length;
+      
+      validFiles.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'text-gray-700';
+        li.innerHTML = `<strong>${file.name}</strong> <span class="text-gray-400">(${formatBytes(file.size)})</span>`;
+        fileNames.appendChild(li);
+      });
+      
+      uploadBtn.disabled = false;
+    } else {
+      fileList.classList.add('hidden');
       uploadBtn.disabled = true;
-    });
-  </script>
+    }
+  });
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  // Show loading when form submitted
+  document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const files = fileInput.files;
+    if (files.length === 0) {
+      e.preventDefault();
+      alert('Please select at least one file!');
+      return false;
+    }
+    
+    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading ' + files.length + ' file(s)...';
+    uploadBtn.disabled = true;
+  });
+</script>
+
 </body>
 </html>

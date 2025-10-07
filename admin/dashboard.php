@@ -240,15 +240,33 @@ $orders = $stmt->get_result();
               <td class="px-6 py-4 text-sm text-gray-600">
                 <?php echo date('d M Y H:i', strtotime($order['created_at'])); ?>
               </td>
-              <td class="px-6 py-4">
-                <select onchange="updateStatus(<?php echo $order['id']; ?>, this.value)" class="border rounded px-2 py-1 text-sm">
-                  <option value="">Update...</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
+   <td class="px-6 py-4">
+      <div class="flex gap-2">
+       <!-- View Button -->
+<button onclick="viewOrderDetail(<?php echo $order['id']; ?>)" 
+  class="bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 p-2 rounded-full" 
+  title="View Details">
+  <i class="fa-solid fa-eye"></i>
+</button>
+
+<!-- Delete Button -->
+<button onclick="deleteOrder(<?php echo $order['id']; ?>, '<?php echo $order['order_number']; ?>')" 
+  class="bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800 p-2 rounded-full ml-1" 
+  title="Delete Order">
+  <i class="fa-solid fa-trash"></i>
+</button>
+
+        
+        <!-- Update Status Dropdown -->
+        <select onchange="updateStatus(<?php echo $order['id']; ?>, this.value)" class="border rounded px-2 py-1 text-xs">
+          <option value="">Update...</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </td>
             </tr>
             <?php endwhile; ?>
           </tbody>
@@ -268,38 +286,168 @@ $orders = $stmt->get_result();
       <?php endif; ?>
     </div>
   </main>
+<script>
+  function updateStatus(orderId, status) {
+    if (!status) return;
+    
+    Swal.fire({
+      title: 'Update Status?',
+      text: `Change order status to ${status}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, update it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('update_status.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `order_id=${orderId}&status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Updated!', 'Order status has been updated.', 'success')
+              .then(() => location.reload());
+          } else {
+            Swal.fire('Error!', 'Failed to update status.', 'error');
+          }
+        });
+      }
+    });
+  }
 
-  <script>
-    function updateStatus(orderId, status) {
-      if (!status) return;
-      
-      Swal.fire({
-        title: 'Update Status?',
-        text: `Change order status to ${status}?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3b82f6',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Yes, update it!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          fetch('update_status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `order_id=${orderId}&status=${status}`
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire('Updated!', 'Order status has been updated.', 'success')
-                .then(() => location.reload());
-            } else {
-              Swal.fire('Error!', 'Failed to update status.', 'error');
-            }
+  function viewOrderDetail(orderId) {
+    // Show loading
+    Swal.fire({
+      title: 'Loading...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Fetch order details
+    fetch(`get_order_detail.php?order_id=${orderId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          let filesHtml = '';
+          
+          if (data.files.length > 0) {
+            filesHtml = `
+              <div class="text-left mt-4">
+                <h4 class="font-semibold mb-2">Uploaded Files:</h4>
+                <div class="space-y-2">
+                  ${data.files.map(file => `
+                    <div class="flex items-center justify-between bg-gray-50 p-3 rounded">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-500"></i>
+                        <div>
+                          <p class="text-sm font-medium">${file.file_name}</p>
+                          <p class="text-xs text-gray-500">${file.file_pages} pages • ${file.file_size}</p>
+                        </div>
+                      </div>
+                      <a href="../${file.file_path}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                        <i class="fa-solid fa-external-link-alt"></i> Open
+                      </a>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          } else {
+            filesHtml = '<p class="text-gray-500 text-sm mt-4">No files uploaded</p>';
+          }
+
+          Swal.fire({
+            title: `Order #${data.order.order_number}`,
+            html: `
+              <div class="text-left">
+                <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <p class="text-gray-500">Total Pages</p>
+                    <p class="font-semibold">${data.order.total_pages} pages</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Paper Size</p>
+                    <p class="font-semibold">${data.order.paper_size}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Color Type</p>
+                    <p class="font-semibold">${data.order.color_type}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Copies</p>
+                    <p class="font-semibold">${data.order.copies}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Price per Page</p>
+                    <p class="font-semibold">$${parseFloat(data.order.price_per_page).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-500">Total Price</p>
+                    <p class="font-semibold text-blue-600">$${parseFloat(data.order.total_price).toFixed(2)}</p>
+                  </div>
+                </div>
+                ${filesHtml}
+              </div>
+            `,
+            width: '600px',
+            confirmButtonText: 'Close'
           });
+        } else {
+          Swal.fire('Error!', 'Failed to load order details.', 'error');
         }
+      })
+      .catch(error => {
+        Swal.fire('Error!', 'Failed to load order details.', 'error');
       });
-    }
-  </script>
+  }
+
+  function deleteOrder(orderId, orderNumber) {
+    Swal.fire({
+      title: 'Delete Order?',
+      html: `Are you sure you want to delete order <strong>${orderNumber}</strong>?<br><span class="text-red-600 text-sm">This will also delete all uploaded files!</span>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: 'Deleting...',
+          text: 'Please wait',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        fetch('delete_order.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `order_id=${orderId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Deleted!', 'Order has been deleted.', 'success')
+              .then(() => location.reload());
+          } else {
+            Swal.fire('Error!', data.message || 'Failed to delete order.', 'error');
+          }
+        })
+        .catch(error => {
+          Swal.fire('Error!', 'Failed to delete order.', 'error');
+        });
+      }
+    });
+  }
+</script>
 </body>
 </html>

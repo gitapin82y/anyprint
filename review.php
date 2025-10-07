@@ -163,8 +163,8 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
               <label class="text-sm text-gray-600">Paper Size</label>
               <select id="paperSize" name="paper_size" class="w-full border rounded-lg px-3 py-2 mt-1">
                 <option <?php echo $paper_size === 'A4' ? 'selected' : ''; ?>>A4</option>
-                <option <?php echo $paper_size === 'Letter' ? 'selected' : ''; ?>>Letter</option>
-                <option <?php echo $paper_size === 'Legal' ? 'selected' : ''; ?>>Legal</option>
+                <option <?php echo $paper_size === 'A5' ? 'selected' : ''; ?>>A5</option>
+                <option <?php echo $paper_size === 'A3' ? 'selected' : ''; ?>>A3</option>
               </select>
             </div>
             <div>

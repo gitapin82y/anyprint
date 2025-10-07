@@ -112,7 +112,7 @@ if ($payment_success) {
         <strong>Demo Payment</strong> — This is a sample payment interface. In a real implementation, this would connect to a payment processor.
       </div>
 
-      <p class="text-gray-500 text-xs mb-4">Supports: Apple Pay, Google Pay, Credit Cards</p>
+      <p class="text-gray-500 text-xs mb-4">Support payment ke QRIS,Gopay,OVO, E wallet lainnya</p>
 
       <form method="POST" id="paymentForm">
         <input type="hidden" name="simulate_payment" value="1">

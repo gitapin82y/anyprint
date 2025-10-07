@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $color_type = sanitize($_POST['color_type']);
     $copies = intval($_POST['copies']);
     
-    $price_per_page = ($color_type === 'Color') ? PRICE_COLOR : PRICE_BW;
+    $price_per_page = getPricePerPage($paper_size, $color_type);
     $total_price = $total_pages * $price_per_page * $copies;
     
     // Update order
@@ -197,23 +197,32 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     </div>
   </main>
 
- <script>
+<script>
   const totalPages = <?php echo $total_pages; ?>;
+  const paperSizeSelect = document.getElementById('paperSize');
   const colorSelect = document.getElementById('colorType');
   const copiesInput = document.getElementById('copies');
   const summaryText = document.getElementById('summaryText');
   const totalPriceEl = document.getElementById('totalPrice');
 
+  const prices = {
+    'A5': { 'Black & White': 500, 'Color': 750 },
+    'A4': { 'Black & White': 750, 'Color': 1000 },
+    'A3': { 'Black & White': 1000, 'Color': 1250 }
+  };
+
   function updatePrice() {
+    const paperSize = paperSizeSelect.value;
     const color = colorSelect.value;
     const copies = parseInt(copiesInput.value) || 1;
-    let pricePerPage = color === 'Color' ? <?php echo PRICE_COLOR; ?> : <?php echo PRICE_BW; ?>;
+    const pricePerPage = prices[paperSize][color];
     const total = totalPages * pricePerPage * copies;
 
-    summaryText.textContent = `${totalPages} pages × $${pricePerPage.toFixed(2)} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
-    totalPriceEl.textContent = `$${total.toFixed(2)}`;
+    summaryText.textContent = `${totalPages} pages × Rp ${pricePerPage.toLocaleString('id-ID')} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
+    totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
   }
 
+  paperSizeSelect.addEventListener('change', updatePrice);
   colorSelect.addEventListener('change', updatePrice);
   copiesInput.addEventListener('input', updatePrice);
   updatePrice();

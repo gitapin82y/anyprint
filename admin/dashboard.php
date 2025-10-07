@@ -392,11 +392,11 @@ $orders = $stmt->get_result();
                   </div>
                   <div>
                     <p class="text-gray-500">Price per Page</p>
-                    <p class="font-semibold">$${parseFloat(data.order.price_per_page).toFixed(2)}</p>
+                   <p class="font-semibold">Rp ${parseInt(data.order.price_per_page).toLocaleString('id-ID')}</p>
                   </div>
                   <div>
                     <p class="text-gray-500">Total Price</p>
-                    <p class="font-semibold text-blue-600">$${parseFloat(data.order.total_price).toFixed(2)}</p>
+                <p class="font-semibold text-blue-600">Rp ${parseInt(data.order.total_price).toLocaleString('id-ID')}</p>
                   </div>
                 </div>
                 ${filesHtml}

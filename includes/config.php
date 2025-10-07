@@ -10,8 +10,12 @@ define('SITE_URL', 'https://anyprint.my.id/');
 define('ADMIN_URL', SITE_URL . '/admin');
 
 // Pricing Configuration
-define('PRICE_BW', 0.30);
-define('PRICE_COLOR', 0.75);
+define('PRICE_A5_BW', 500);
+define('PRICE_A4_BW', 750);
+define('PRICE_A3_BW', 1000);
+define('PRICE_A5_COLOR', 750);
+define('PRICE_A4_COLOR', 1000);
+define('PRICE_A3_COLOR', 1250);
 
 // Session Configuration
 session_start();
@@ -59,7 +63,26 @@ function getClientIP() {
 }
 
 function formatPrice($price) {
-    return '$' . number_format($price, 2);
+    return 'Rp ' . number_format($price, 0, ',', '.');
+}
+
+function getPricePerPage($paper_size, $color_type) {
+    $prices = [
+        'A5' => [
+            'Black & White' => PRICE_A5_BW,
+            'Color' => PRICE_A5_COLOR
+        ],
+        'A4' => [
+            'Black & White' => PRICE_A4_BW,
+            'Color' => PRICE_A4_COLOR
+        ],
+        'A3' => [
+            'Black & White' => PRICE_A3_BW,
+            'Color' => PRICE_A3_COLOR
+        ]
+    ];
+    
+    return $prices[$paper_size][$color_type] ?? PRICE_A4_BW;
 }
 
 function sanitize($data) {

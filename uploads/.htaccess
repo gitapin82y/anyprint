@@ -1,0 +1,18 @@
+# Protect uploaded files
+# Allow only specific file types to be accessed
+<FilesMatch "\.(pdf|jpg|jpeg|png|doc|docx)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Deny access to all other files
+<FilesMatch "\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Prevent PHP execution in uploads folder
+php_flag engine off
+
+# Prevent directory listing
+Options -Indexes

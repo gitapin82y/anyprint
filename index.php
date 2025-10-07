@@ -1,0 +1,229 @@
+<?php
+require_once 'includes/config.php';
+
+// Create new order session
+if (!isset($_SESSION['order_id'])) {
+    $order_number = generateOrderNumber();
+    $customer_ip = getClientIP();
+    
+    $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_ip) VALUES (?, ?)");
+    $stmt->bind_param("ss", $order_number, $customer_ip);
+    $stmt->execute();
+    
+    $_SESSION['order_id'] = $conn->insert_id;
+    $_SESSION['order_number'] = $order_number;
+    $stmt->close();
+}
+
+$error = '';
+$success = '';
+
+// Handle file upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
+    $order_id = $_SESSION['order_id'];
+    $upload_dir = 'uploads/' . $order_id . '/';
+    
+    // Create upload directory if not exists
+    if (!file_exists($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+    
+    $files = $_FILES['documents'];
+    $file_count = count($files['name']);
+    $uploaded_count = 0;
+    
+    for ($i = 0; $i < $file_count; $i++) {
+        if ($files['error'][$i] === UPLOAD_ERR_OK) {
+            $file_name = $files['name'][$i];
+            $file_tmp = $files['tmp_name'][$i];
+            $file_size = $files['size'][$i];
+            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            
+            // Validate file type
+            $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+            if (!in_array($file_ext, $allowed_types)) {
+                $error .= "File $file_name: Format tidak didukung. ";
+                continue;
+            }
+            
+            // Validate file size (max 10MB)
+            if ($file_size > 10 * 1024 * 1024) {
+                $error .= "File $file_name: Ukuran terlalu besar (max 10MB). ";
+                continue;
+            }
+            
+            // Generate unique filename
+            $new_filename = time() . '_' . $i . '_' . preg_replace('/[^a-zA-Z0-9_.-]/', '', $file_name);
+            $destination = $upload_dir . $new_filename;
+            
+            if (move_uploaded_file($file_tmp, $destination)) {
+                // Detect number of pages
+                $pages = detectPages($destination, $file_ext);
+                
+                // Get file size in readable format
+                $file_size_formatted = formatFileSize($file_size);
+                
+                // Save to database
+                $stmt = $conn->prepare("INSERT INTO order_files (order_id, file_name, file_size, file_pages, file_path) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("issis", $order_id, $file_name, $file_size_formatted, $pages, $destination);
+                $stmt->execute();
+                $stmt->close();
+                
+                $uploaded_count++;
+            } else {
+                $error .= "Gagal upload file $file_name. ";
+            }
+        }
+    }
+    
+    if ($uploaded_count > 0) {
+        $success = "$uploaded_count file berhasil diupload!";
+        // Redirect to review page after 1 second
+        header("refresh:1;url=review.php");
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anyprint - Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+  @keyframes pulseScale {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-qris {
+    animation: pulseScale 1.8s ease-in-out infinite;
+  }
+
+  .file-upload-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .file-upload-wrapper input[type=file] {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .file-upload-label {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .file-upload-label:hover {
+    opacity: 0.9;
+  }
+</style>
+
+</head>
+<body class="bg-[#f1f5ff] font-sans">
+  <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">A</div>
+      <h1 class="font-semibold text-gray-800 text-lg">Anyprint</h1>
+    </div>
+    <p class="text-gray-500 text-sm">Smart Printing Solutions</p>
+  </header>
+
+  <main class="flex flex-col items-center justify-center min-h-[80vh] py-8">
+    <div class="bg-white rounded-2xl shadow-lg p-8 w-[90%] max-w-md text-center">
+      <h2 class="text-2xl font-bold mb-2">Upload Your Files</h2>
+      <p class="text-gray-600 mb-6">Scan the QR code below with your phone or upload directly from this device</p>
+
+      <div class="bg-gradient-to-r from-blue-500 to-purple-500 p-4 inline-block rounded-xl mb-4 animate-qris">
+        <div class="bg-white w-40 h-40 flex items-center justify-center font-bold text-3xl text-gray-800">▩</div>
+      </div>
+
+      <p class="text-gray-500 text-sm mb-2">Order Number: <strong><?php echo $_SESSION['order_number']; ?></strong></p>
+
+      <?php if ($error): ?>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm text-left">
+        <i class="fa-solid fa-circle-exclamation mr-1"></i> <?php echo $error; ?>
+      </div>
+      <?php endif; ?>
+
+      <?php if ($success): ?>
+      <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">
+        <i class="fa-solid fa-circle-check mr-1"></i> <?php echo $success; ?>
+      </div>
+      <?php endif; ?>
+
+      <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="file-upload-wrapper mb-4">
+          <input type="file" name="documents[]" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required />
+          <label for="fileInput" class="file-upload-label bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
+            <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Choose Files
+          </label>
+        </div>
+
+        <div id="fileList" class="mb-4 text-left text-sm text-gray-600 hidden">
+          <p class="font-semibold mb-2">Selected files:</p>
+          <ul id="fileNames" class="list-disc pl-5 space-y-1"></ul>
+        </div>
+
+        <button type="submit" id="uploadBtn" class="bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition disabled:opacity-50" disabled>
+          <i class="fa-solid fa-upload mr-2"></i> Upload & Continue
+        </button>
+      </form>
+
+    </div>
+
+    <footer class="text-center text-gray-400 text-xs mt-6">
+      Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB per file)
+    </footer>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const fileNames = document.getElementById('fileNames');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    fileInput.addEventListener('change', function() {
+      const files = this.files;
+      
+      if (files.length > 0) {
+        fileList.classList.remove('hidden');
+        fileNames.innerHTML = '';
+        
+        for (let i = 0; i < files.length; i++) {
+          const li = document.createElement('li');
+          li.textContent = files[i].name + ' (' + formatBytes(files[i].size) + ')';
+          fileNames.appendChild(li);
+        }
+        
+        uploadBtn.disabled = false;
+      } else {
+        fileList.classList.add('hidden');
+        uploadBtn.disabled = true;
+      }
+    });
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Show loading when form submitted
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+      uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...';
+      uploadBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>

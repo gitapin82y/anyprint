@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simulate_payment'])) 
         $stmt->close();
     }
     
-    $stmt = $conn->prepare("UPDATE orders SET payment_status = 'success', order_status = 'processing' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE orders SET payment_status = 'success', order_status = 'pending' WHERE id = ?");
     $stmt->bind_param("i", $order_id);
     $stmt->execute();
     $stmt->close();

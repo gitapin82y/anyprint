@@ -3,10 +3,8 @@ require_once '../includes/config.php';
 
 header('Content-Type: application/json');
 
-// Check if admin is logged in
-if (!isset($_SESSION['admin_logged_in'])) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_role'] !== 'admin') {
+    redirect('../login.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

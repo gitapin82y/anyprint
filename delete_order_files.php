@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'])) {
     $stmt->close();
     
     // Mark order as completed
-    $stmt = $conn->prepare("UPDATE orders SET order_status = 'completed' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE orders SET order_status = 'pending' WHERE id = ?");
     $stmt->bind_param("i", $order_id);
     $stmt->execute();
     $stmt->close();

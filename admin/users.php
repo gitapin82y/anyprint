@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/config.php';
 
-if (!isset($_SESSION['admin_logged_in'])) {
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_role'] !== 'admin') {
     redirect('../login.php');
 }
 

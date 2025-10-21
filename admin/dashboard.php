@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 
 // Check if admin is logged in
-if (!isset($_SESSION['admin_logged_in'])) {
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_role'] !== 'admin') {
     redirect('../login.php');
 }
 
@@ -92,7 +92,7 @@ $orders = $stmt->get_result();
           <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white rounded-full flex items-center justify-center font-bold">    <img src="../assets/logo-anyprint.jpeg" width="150px" alt=""></div>
           <div>
             <h1 class="text-xl font-bold text-gray-800">Admin</h1>
-            <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?></p>
+            <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></p>
           </div>
         </div>
         <a href="../logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">

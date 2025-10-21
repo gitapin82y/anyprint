@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username']);
     $password = $_POST['password'];
     
-    $stmt = $conn->prepare("SELECT id, username, password, full_name, email FROM users WHERE username = ? OR email = ?");
+ $stmt = $conn->prepare("SELECT id, username, password, full_name, email, role FROM users WHERE username = ? OR email = ?");
     $stmt->bind_param("ss", $username, $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['user_email'] = $user['email'];
              $_SESSION['user_role'] = $user['role'];
-            
+
+
             // Update last login
             $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $stmt->bind_param("i", $user['id']);

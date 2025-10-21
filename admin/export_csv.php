@@ -1,9 +1,8 @@
 <?php
 require_once '../includes/config.php';
 
-// Check if admin is logged in
-if (!isset($_SESSION['admin_logged_in'])) {
-        redirect('../login.php');
+if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_role'] !== 'admin') {
+    redirect('../login.php');
 }
 
 // Get all orders

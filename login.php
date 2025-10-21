@@ -1,8 +1,13 @@
 <?php
 require_once 'includes/config.php';
 
+// Redirect if already logged in
 if (isset($_SESSION['user_logged_in'])) {
-    redirect('user_dashboard.php');
+    if ($_SESSION['user_role'] === 'admin') {
+        redirect('admin/dashboard.php');
+    } else {
+        redirect('dashboard.php');
+    }
 }
 
 $error = '';
@@ -25,13 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_username'] = $user['username'];
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['user_email'] = $user['email'];
+             $_SESSION['user_role'] = $user['role'];
             
             // Update last login
             $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
             $stmt->bind_param("i", $user['id']);
             $stmt->execute();
             
-            redirect('user_dashboard.php');
+               if ($user['role'] === 'admin') {
+                redirect('admin/dashboard.php');
+            } else {
+                redirect('dashboard.php');
+            }
         } else {
             $error = 'Invalid username or password';
         }

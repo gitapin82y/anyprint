@@ -3,7 +3,7 @@ require_once '../includes/config.php';
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_logged_in'])) {
-    redirect('login.php');
+    redirect('../login.php');
 }
 
 // Get statistics
@@ -95,7 +95,7 @@ $orders = $stmt->get_result();
             <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['admin_name']); ?></p>
           </div>
         </div>
-        <a href="logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
+        <a href="../logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
           <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
         </a>
       </div>

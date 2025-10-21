@@ -14,7 +14,8 @@ define('DB_USER', 'root');
 define('DB_PASS', 'root');
 define('DB_NAME', 'anyprint_db');
 
-define('SITE_URL', 'https://anyprint.my.id/');
+// Site Configuration
+define('SITE_URL', 'localhost');
 define('ADMIN_URL', SITE_URL . '/admin');
 
 // Pricing Configuration
@@ -78,15 +79,16 @@ function formatPrice($price) {
     return 'Rp ' . number_format($price, 0, ',', '.');
 }
 
-function getPricePerPage($paper_size, $color_type) {
-   $prices = [
+function getPricePerPage($paper_size, $color_type = null) {
+    // ONLY BLACK & WHITE, NO A3
+    // $color_type parameter ignored (kept for backward compatibility)
+    $prices = [
         'A5' => PRICE_A5_BW,
         'A4' => PRICE_A4_BW
     ];
     
     return $prices[$paper_size] ?? PRICE_A4_BW;
 }
-
 function sanitize($data) {
     global $conn;
     return $conn->real_escape_string(trim($data));

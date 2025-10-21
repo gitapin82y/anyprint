@@ -2,7 +2,7 @@
 require_once 'includes/config.php';
 
 if (isset($_SESSION['user_logged_in'])) {
-    redirect('user_dashboard.php');
+    redirect('dashboard.php');
 }
 
 $error = '';
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($stmt->execute()) {
                 $success = 'Registration successful! Redirecting to login...';
-                header("refresh:2;url=login_user.php");
+                header("refresh:2;url=login.php");
             } else {
                 $error = 'Registration failed. Please try again.';
             }
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="text-center text-sm text-gray-600">
         Already have an account? 
-        <a href="login_user.php" class="text-blue-600 hover:text-blue-700 font-medium">Login here</a>
+        <a href="login.php" class="text-blue-600 hover:text-blue-700 font-medium">Login here</a>
       </div>
 
       <div class="text-center mt-3">

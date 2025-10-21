@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 
 if (!isset($_SESSION['admin_logged_in'])) {
-    redirect('login.php');
+    redirect('../login.php');
 }
 
 // Get all users with stats
@@ -43,7 +43,7 @@ $users = $stmt;
           <a href="users.php" class="text-blue-600 font-medium text-sm">
             <i class="fa-solid fa-users mr-1"></i> Users
           </a>
-          <a href="logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
+          <a href="../logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
             <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
           </a>
         </nav>

@@ -195,14 +195,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     <p class="text-gray-500 text-sm">Smart Printing Solutions</p>
     <div class="flex gap-3 items-center">
       <?php if (isset($_SESSION['user_logged_in'])): ?>
-        <a href="user_dashboard.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+        <a href="dashboard.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
           <i class="fa-solid fa-user-circle mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_username']); ?>
         </a>
-        <a href="logout_user.php" class="text-red-600 hover:text-red-700 text-sm">
+        <a href="logout.php" class="text-red-600 hover:text-red-700 text-sm">
           <i class="fa-solid fa-right-from-bracket"></i>
         </a>
       <?php else: ?>
-        <a href="login_user.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+        <a href="login.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
           <i class="fa-solid fa-sign-in-alt mr-1"></i> Login
         </a>
         <a href="register.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">

@@ -2,7 +2,7 @@
 require_once 'includes/config.php';
 
 if (!isset($_SESSION['user_logged_in'])) {
-    redirect('login_user.php');
+    redirect('login.php');
 }
 
 $user_id = $_SESSION['user_id'];
@@ -19,7 +19,9 @@ $stmt = $conn->prepare("
     SELECT o.*, 
            (SELECT COUNT(*) FROM order_files WHERE order_id = o.id) as file_count
     FROM orders o
-    WHERE o.user_id = ? AND o.total_price > 0
+    WHERE o.user_id = ? 
+      AND o.payment_status = 'success'
+      AND o.total_price > 0
     ORDER BY o.created_at DESC
     LIMIT 20
 ");
@@ -53,7 +55,7 @@ $stmt->close();
           <a href="index.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
             <i class="fa-solid fa-print mr-1"></i> New Print
           </a>
-          <a href="logout_user.php" class="text-red-600 hover:text-red-700 font-medium text-sm px-4 py-2">
+          <a href="logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm px-4 py-2">
             <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
           </a>
         </div>
@@ -116,7 +118,6 @@ $stmt->close();
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Files</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -132,11 +133,7 @@ $stmt->close();
                 <?php echo $row['total_pages']; ?> pages<br>
                 <?php echo $row['paper_size']; ?> • <?php echo $row['copies']; ?> cop<?php echo $row['copies'] > 1 ? 'ies' : 'y'; ?>
               </td>
-              <td class="px-6 py-4 text-sm">
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                  <?php echo $row['file_count']; ?> file<?php echo $row['file_count'] > 1 ? 's' : ''; ?>
-                </span>
-              </td>
+       
               <td class="px-6 py-4">
                 <span class="font-semibold text-gray-800"><?php echo formatPrice($row['total_price']); ?></span>
               </td>

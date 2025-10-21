@@ -3,7 +3,7 @@ require_once '../includes/config.php';
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_logged_in'])) {
-    redirect('login.php');
+        redirect('../login.php');
 }
 
 // Get all orders

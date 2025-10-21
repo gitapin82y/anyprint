@@ -30,20 +30,20 @@ $users = $stmt;
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100">
-  <header class="bg-white shadow-sm">
+  <header class="bg-[#1151AB] shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-4">
-        <div class="flex items-center gap-3">
+        <a href="https://anyprint.my.id/" class="flex items-center gap-3">
           <img src="../assets/logo-anyprint.jpeg" width="150px" alt="">
-        </div>
+        </a>
         <nav class="flex gap-4">
-          <a href="dashboard.php" class="text-gray-600 hover:text-gray-800 font-medium text-sm">
+          <a href="dashboard.php" class="text-white font-medium text-sm">
             <i class="fa-solid fa-dashboard mr-1"></i> Dashboard
           </a>
-          <a href="users.php" class="text-blue-600 font-medium text-sm">
+          <a href="users.php" class="text-white font-medium text-sm">
             <i class="fa-solid fa-users mr-1"></i> Users
           </a>
-          <a href="../logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
+          <a href="../logout.php" class="text-white font-medium text-sm">
             <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
           </a>
         </nav>
@@ -89,7 +89,7 @@ $users = $stmt;
               </td>
               <td class="px-6 py-4">
                 <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                  <?php echo $user['order_count']; ?> orders
+                  <?php echo $user['order_count']; ?>
                 </span>
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">

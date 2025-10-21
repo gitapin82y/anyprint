@@ -99,21 +99,21 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- TAMBAHKAN INI -->
 </head>
 <body class="bg-[#f1f5ff] font-sans">
-   <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-    <div class="flex items-center gap-2">
+   <header class="flex justify-between items-center px-8 py-4 bg-[#1151AB] shadow-sm">
+    <a href="https://anyprint.my.id/" class="flex items-center gap-2">
     <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
-    </div>
-    <p class="text-gray-500 text-sm">Smart Printing Solutions</p>
+    </a>
+    <p class="text-white text-sm">Upload File</p>
     <div class="flex gap-3 items-center">
       <?php if (isset($_SESSION['user_logged_in'])): ?>
-        <a href="dashboard.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+        <a href="dashboard.php" class="text-white text-sm font-medium">
           <i class="fa-solid fa-user-circle mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_username']); ?>
         </a>
         <a href="logout.php" class="text-red-600 hover:text-red-700 text-sm">
           <i class="fa-solid fa-right-from-bracket"></i>
         </a>
       <?php else: ?>
-        <a href="login.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+        <a href="login.php" class="text-white text-sm font-medium">
           <i class="fa-solid fa-sign-in-alt mr-1"></i> Login
         </a>
         <a href="register.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">

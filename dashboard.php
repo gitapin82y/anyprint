@@ -41,21 +41,21 @@ $stmt->close();
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body class="bg-gray-100">
-  <header class="bg-white shadow-sm">
+  <header class="bg-[#1151AB] shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-4">
-        <div class="flex items-center gap-3">
+        <a href="https://anyprint.my.id/" class="flex items-center gap-3">
           <img src="assets/logo-anyprint.jpeg" width="120px" alt="">
           <div>
-            <h1 class="text-xl font-bold text-gray-800">My Dashboard</h1>
-            <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></p>
+            <h1 class="text-xl font-bold text-white">My Dashboard</h1>
+            <p class="text-sm text-white">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></p>
           </div>
-        </div>
+        </a>
         <div class="flex gap-3">
           <a href="index.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
             <i class="fa-solid fa-print mr-1"></i> New Print
           </a>
-          <a href="logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm px-4 py-2">
+          <a href="logout.php" class="text-white font-medium text-sm px-4 py-2">
             <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
           </a>
         </div>

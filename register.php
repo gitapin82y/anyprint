@@ -67,7 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-gradient-to-br from-[#1D4A80] to-[#828275] min-h-screen flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
     <div class="text-center mb-6">
+        <a href="https://anyprint.my.id/">
       <img src="assets/logo-anyprint.jpeg" width="120px" class="mx-auto mb-3" alt="">
+      </a>
       <h1 class="text-2xl font-bold text-gray-800">Create Account</h1>
       <p class="text-gray-600 text-sm">Sign up to track your print history</p>
     </div>

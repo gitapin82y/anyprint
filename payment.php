@@ -76,6 +76,7 @@ if ($payment_success) {
   <title>Anyprint - Payment</title>
   <link rel="icon" type="image/jpeg" href="assets/logo-anyprint.jpeg" />
   <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     @keyframes pulseScale {
@@ -88,11 +89,28 @@ if ($payment_success) {
   </style>
 </head>
 <body class="bg-[#f1f5ff] font-sans">
-  <header class="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-    <div class="flex items-center gap-2">
-      <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
+   <header class="flex justify-between items-center px-8 py-4 bg-[#1151AB] shadow-sm">
+    <a href="https://anyprint.my.id/" class="flex items-center gap-2">
+    <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
+    </a>
+    <p class="text-white text-sm">Payment</p>
+    <div class="flex gap-3 items-center">
+      <?php if (isset($_SESSION['user_logged_in'])): ?>
+        <a href="dashboard.php" class="text-white text-sm font-medium">
+          <i class="fa-solid fa-user-circle mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_username']); ?>
+        </a>
+        <a href="logout.php" class="text-red-600 hover:text-red-700 text-sm">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      <?php else: ?>
+        <a href="login.php" class="text-white text-sm font-medium">
+          <i class="fa-solid fa-sign-in-alt mr-1"></i> Login
+        </a>
+        <a href="register.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+          Register
+        </a>
+      <?php endif; ?>
     </div>
-    <p class="text-gray-500 text-sm">Payment</p>
   </header>
 
   <small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>

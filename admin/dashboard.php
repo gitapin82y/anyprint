@@ -85,19 +85,23 @@ $orders = $stmt->get_result();
 </head>
 <body class="bg-gray-100">
   <!-- Header -->
-  <header class="bg-white shadow-sm">
+   <header class="bg-[#1151AB] shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-4">
-        <div class="flex items-center gap-3">
-          <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white rounded-full flex items-center justify-center font-bold">    <img src="../assets/logo-anyprint.jpeg" width="150px" alt=""></div>
-          <div>
-            <h1 class="text-xl font-bold text-gray-800">Admin</h1>
-            <p class="text-sm text-gray-500">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></p>
-          </div>
-        </div>
-        <a href="../logout.php" class="text-red-600 hover:text-red-700 font-medium text-sm">
-          <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+        <a href="https://anyprint.my.id/" class="flex items-center gap-3">
+          <img src="../assets/logo-anyprint.jpeg" width="150px" alt="">
         </a>
+        <nav class="flex gap-4">
+          <a href="dashboard.php" class="text-white font-medium text-sm">
+            <i class="fa-solid fa-dashboard mr-1"></i> Dashboard
+          </a>
+          <a href="users.php" class="text-white font-medium text-sm">
+            <i class="fa-solid fa-users mr-1"></i> Users
+          </a>
+          <a href="../logout.php" class="text-white font-medium text-sm">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+          </a>
+        </nav>
       </div>
     </div>
   </header>

@@ -164,6 +164,10 @@ $orders = $stmt->get_result();
           <a href="export_csv.php" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm">
             <i class="fa-solid fa-download mr-1"></i> Export CSV
           </a>
+          <a href="users.php" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm">
+  <i class="fa-solid fa-users mr-1"></i> View Users
+</a>
+
         </div>
 
         <!-- Filters -->

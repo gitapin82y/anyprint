@@ -34,21 +34,19 @@ if (empty($files_array)) {
     redirect('index.php');
 }
 
-// Default values
 $paper_size = $order['paper_size'] ?: 'A4';
-$color_type = $order['color_type'] ?: 'Black & White';
 $copies = $order['copies'] ?: 1;
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paper_size = sanitize($_POST['paper_size']);
-    $color_type = sanitize($_POST['color_type']);
     $copies = intval($_POST['copies']);
     
-    $price_per_page = getPricePerPage($paper_size, $color_type);
+    $price_per_page = getPricePerPage($paper_size);
     $total_price = $total_pages * $price_per_page * $copies;
     
-    // Update order
+    // Color type always Black & White
+    $color_type = 'Black & White';
+    
     $stmt = $conn->prepare("UPDATE orders SET paper_size = ?, color_type = ?, copies = ?, price_per_page = ?, total_price = ?, total_pages = ? WHERE id = ?");
     $stmt->bind_param("ssiidii", $paper_size, $color_type, $copies, $price_per_page, $total_price, $total_pages, $order_id);
     $stmt->execute();
@@ -155,23 +153,14 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
       </div>
 
       <form method="POST" id="reviewForm">
-        <!-- Print Settings -->
         <div class="bg-gray-50 rounded-xl p-6 mb-8 border">
           <h3 class="font-semibold mb-4">Print Settings</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="text-sm text-gray-600">Paper Size</label>
               <select id="paperSize" name="paper_size" class="w-full border rounded-lg px-3 py-2 mt-1">
                 <option <?php echo $paper_size === 'A4' ? 'selected' : ''; ?>>A4</option>
                 <option <?php echo $paper_size === 'A5' ? 'selected' : ''; ?>>A5</option>
-                <option <?php echo $paper_size === 'A3' ? 'selected' : ''; ?>>A3</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm text-gray-600">Color</label>
-              <select id="colorType" name="color_type" class="w-full border rounded-lg px-3 py-2 mt-1">
-                <option <?php echo $color_type === 'Black & White' ? 'selected' : ''; ?>>Black & White</option>
-                <option <?php echo $color_type === 'Color' ? 'selected' : ''; ?>>Color</option>
               </select>
             </div>
             <div>
@@ -179,18 +168,20 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
               <input type="number" id="copies" name="copies" min="1" value="<?php echo $copies; ?>" class="w-full border rounded-lg px-3 py-2 mt-1" />
             </div>
           </div>
+          <p class="text-sm text-gray-500 mt-3">
+            <i class="fa-solid fa-info-circle mr-1"></i> Black & White only
+          </p>
         </div>
 
-        <!-- Summary -->
         <div class="flex justify-between items-center mb-6">
-          <div class="col-6">
+          <div>
             <h3 class="font-semibold">Total Cost</h3>
             <p id="summaryText" class="text-gray-600 text-sm"></p>
           </div>
           <p id="totalPrice" class="text-xl font-bold text-blue-600"></p>
         </div>
 
-        <button type="submit" class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition text-center block">
+        <button type="submit" class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white font-medium px-6 py-3 rounded-xl w-full hover:opacity-90 transition">
           Proceed to Payment
         </button>
       </form>
@@ -198,34 +189,30 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
   </main>
 
 <script>
-  const totalPages = <?php echo $total_pages; ?>;
-  const paperSizeSelect = document.getElementById('paperSize');
-  const colorSelect = document.getElementById('colorType');
-  const copiesInput = document.getElementById('copies');
-  const summaryText = document.getElementById('summaryText');
-  const totalPriceEl = document.getElementById('totalPrice');
+    const totalPages = <?php echo $total_pages; ?>;
+    const paperSizeSelect = document.getElementById('paperSize');
+    const copiesInput = document.getElementById('copies');
+    const summaryText = document.getElementById('summaryText');
+    const totalPriceEl = document.getElementById('totalPrice');
 
-  const prices = {
-    'A5': { 'Black & White': 500, 'Color': 750 },
-    'A4': { 'Black & White': 750, 'Color': 1000 },
-    'A3': { 'Black & White': 1000, 'Color': 1250 }
-  };
+const prices = {
+      'A5': 300,
+      'A4': 500
+    };
 
-  function updatePrice() {
-    const paperSize = paperSizeSelect.value;
-    const color = colorSelect.value;
-    const copies = parseInt(copiesInput.value) || 1;
-    const pricePerPage = prices[paperSize][color];
-    const total = totalPages * pricePerPage * copies;
+ function updatePrice() {
+      const paperSize = paperSizeSelect.value;
+      const copies = parseInt(copiesInput.value) || 1;
+      const pricePerPage = prices[paperSize];
+      const total = totalPages * pricePerPage * copies;
 
-    summaryText.textContent = `${totalPages} pages × Rp ${pricePerPage.toLocaleString('id-ID')} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
-    totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
-  }
+      summaryText.textContent = `${totalPages} pages × Rp ${pricePerPage.toLocaleString('id-ID')} × ${copies} cop${copies > 1 ? 'ies' : 'y'}`;
+      totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    }
 
   paperSizeSelect.addEventListener('change', updatePrice);
-  colorSelect.addEventListener('change', updatePrice);
-  copiesInput.addEventListener('input', updatePrice);
-  updatePrice();
+    copiesInput.addEventListener('input', updatePrice);
+    updatePrice();
 
   // SweetAlert2 Delete Confirmation
   function confirmDelete(fileId) {

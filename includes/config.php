@@ -1,21 +1,33 @@
 <?php
-// Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', 'u1573484_anyprint');
-define('DB_PASS', 'anyprint123');
-define('DB_NAME', 'u1573484_anyprint');
+// db website real
+// define('DB_HOST', 'localhost');
+// define('DB_USER', 'u1573484_anyprint');
+// define('DB_PASS', 'anyprint123');
+// define('DB_NAME', 'u1573484_anyprint');
 
-// Site Configuration
+// define('SITE_URL', 'https://anyprint.my.id/');
+// define('ADMIN_URL', SITE_URL . '/admin');
+
+// db localhost
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', 'root');
+define('DB_NAME', 'anyprint_db');
+
 define('SITE_URL', 'https://anyprint.my.id/');
 define('ADMIN_URL', SITE_URL . '/admin');
 
 // Pricing Configuration
-define('PRICE_A5_BW', 500);
-define('PRICE_A4_BW', 750);
-define('PRICE_A3_BW', 1000);
-define('PRICE_A5_COLOR', 750);
-define('PRICE_A4_COLOR', 1000);
-define('PRICE_A3_COLOR', 1250);
+// define('PRICE_A5_BW', 500);
+// define('PRICE_A4_BW', 750);
+// define('PRICE_A3_BW', 1000);
+// define('PRICE_A5_COLOR', 750);
+// define('PRICE_A4_COLOR', 1000);
+// define('PRICE_A3_COLOR', 1250);
+
+define('PRICE_A5_BW', 300);  // A5 Black & White
+define('PRICE_A4_BW', 500);  // A4 Black & White (Updated to 500)
+
 
 // Session Configuration
 session_start();
@@ -67,22 +79,12 @@ function formatPrice($price) {
 }
 
 function getPricePerPage($paper_size, $color_type) {
-    $prices = [
-        'A5' => [
-            'Black & White' => PRICE_A5_BW,
-            'Color' => PRICE_A5_COLOR
-        ],
-        'A4' => [
-            'Black & White' => PRICE_A4_BW,
-            'Color' => PRICE_A4_COLOR
-        ],
-        'A3' => [
-            'Black & White' => PRICE_A3_BW,
-            'Color' => PRICE_A3_COLOR
-        ]
+   $prices = [
+        'A5' => PRICE_A5_BW,
+        'A4' => PRICE_A4_BW
     ];
     
-    return $prices[$paper_size][$color_type] ?? PRICE_A4_BW;
+    return $prices[$paper_size] ?? PRICE_A4_BW;
 }
 
 function sanitize($data) {

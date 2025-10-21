@@ -31,6 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simulate_payment'])) 
     $payment_method = 'QRIS';
     $amount = $order['total_price'];
     $status = 'success';
+
+       if (isset($_SESSION['user_id'])) {
+        $user_id = $_SESSION['user_id'];
+        
+        // Update total prints and total spent
+        $stmt = $conn->prepare("UPDATE users SET total_prints = total_prints + 1, total_spent = total_spent + ? WHERE id = ?");
+        $stmt->bind_param("di", $amount, $user_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        // Log print history
+        $stmt = $conn->prepare("INSERT INTO user_print_history (user_id, order_id, pages_printed, amount_paid) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("iiid", $user_id, $order_id, $order['total_pages'], $amount);
+        $stmt->execute();
+        $stmt->close();
+    }
     
     $stmt = $conn->prepare("INSERT INTO payment_logs (order_id, payment_method, amount, status) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("isds", $order_id, $payment_method, $amount, $status);
@@ -97,14 +113,14 @@ if ($payment_success) {
       <p class="text-gray-600 mb-6">Scan the QR code below to pay securely</p>
 
       <!-- Order Summary -->
-      <div class="bg-gray-50 p-4 rounded-xl mb-4">
+    <div class="bg-gray-50 p-4 rounded-xl mb-4">
         <p class="font-semibold text-gray-800 mb-2">Order Summary</p>
-        <p id="orderDetails" class="text-gray-600 text-sm mb-2">
-          <?php echo $order['total_pages']; ?> pages • <?php echo $order['color_type']; ?> • <?php echo $order['copies']; ?> cop<?php echo $order['copies'] > 1 ? 'ies' : 'y'; ?>
+        <p class="text-gray-600 text-sm mb-2">
+          <?php echo $order['total_pages']; ?> pages • Black & White • <?php echo $order['copies']; ?> cop<?php echo $order['copies'] > 1 ? 'ies' : 'y'; ?>
         </p>
-        <p id="orderPrice" class="text-3xl font-bold text-blue-600 mb-4"><?php echo formatPrice($order['total_price']); ?></p>
+        <p class="text-3xl font-bold text-blue-600 mb-4"><?php echo formatPrice($order['total_price']); ?></p>
         <div class="bg-gradient-to-r from-[#1D4A80] to-[#828275] p-4 inline-block rounded-xl animate-qris">
-            <img src="assets/qris.jpg" width="200px" alt="">
+          <img src="assets/qris.jpg" width="200px" alt="">
         </div>
       </div>
 
@@ -126,27 +142,96 @@ if ($payment_success) {
   <footer class="text-center text-gray-400 text-xs mt-6">
     Your documents will print automatically after payment confirmation
   </footer>
-
-  <?php if ($payment_success): ?>
+<?php if ($payment_success): ?>
   <script>
+    let autoDeleteTimer;
+    let countdownSeconds = 15;
+
+    function deleteOrderFiles() {
+      fetch('delete_order_files.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'order_id=<?php echo $order_id; ?>'
+      }).then(() => {
+        showFinalMessage();
+      });
+    }
+
+    function showFinalMessage() {
+      let deleteCountdown = 5;
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Order Completed',
+        html: `
+          <p class="text-gray-700 mb-3">Your file has been permanently deleted for your privacy</p>
+          <p class="text-sm text-gray-500">Redirecting in <strong id="deleteTimer">${deleteCountdown}</strong> seconds...</p>
+          <p class="mt-4 text-lg font-semibold text-blue-600">Thank you for trusting Anyprint</p>
+        `,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        timer: 5000,
+        timerProgressBar: true,
+        didOpen: () => {
+          const timerEl = document.getElementById('deleteTimer');
+          const interval = setInterval(() => {
+            deleteCountdown--;
+            if (timerEl) timerEl.textContent = deleteCountdown;
+            if (deleteCountdown <= 0) clearInterval(interval);
+          }, 1000);
+        }
+      }).then(() => {
+        window.location.href = 'index.php';
+      });
+    }
+
     Swal.fire({
       icon: 'success',
       title: 'Payment Successful!',
       html: `
-        <p class="text-gray-600 mt-2">Your documents are now printing.<br>
-        Please collect them from the output tray.</p>
+        <p class="text-gray-600 mt-2">Your documents are now printing.<br>Please collect them from the output tray.</p>
         <p class="text-sm text-gray-500 mt-2">Order #: <strong><?php echo $completed_order; ?></strong></p>
-        <button id="printAnother" class="mt-5 bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition">
-          Print Another Document
-        </button>
+        <p class="mt-4 text-sm text-orange-600">
+          <i class="fa-solid fa-clock"></i> Auto-delete in <strong id="countdown">15</strong> seconds
+        </p>
+        <div class="mt-5 flex gap-3 justify-center">
+          <button id="printAnother" class="bg-gradient-to-r from-[#1D4A80] to-[#828275] text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition">
+            Print Another
+          </button>
+          <button id="finishOrder" class="bg-green-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+            Finish Order
+          </button>
+        </div>
       `,
       showConfirmButton: false,
       allowOutsideClick: false,
-      background: '#ffffff',
-      width: '360px',
       didOpen: () => {
+        const countdownEl = document.getElementById('countdown');
+        
+        autoDeleteTimer = setInterval(() => {
+          countdownSeconds--;
+          if (countdownEl) countdownEl.textContent = countdownSeconds;
+          
+          if (countdownSeconds <= 0) {
+            clearInterval(autoDeleteTimer);
+            Swal.close();
+            deleteOrderFiles();
+          }
+        }, 1000);
+
         document.getElementById('printAnother').addEventListener('click', () => {
-          window.location.href = 'index.php';
+          clearInterval(autoDeleteTimer);
+          Swal.close();
+          deleteOrderFiles();
+          setTimeout(() => {
+            window.location.href = 'index.php';
+          }, 500);
+        });
+
+        document.getElementById('finishOrder').addEventListener('click', () => {
+          clearInterval(autoDeleteTimer);
+          Swal.close();
+          deleteOrderFiles();
         });
       }
     });

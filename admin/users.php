@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_role'] !== 'admin') {
     redirect('../login.php');
 }
 
-// Get all users with stats
+// Get all users with stats (exclude admins)
 $stmt = $conn->query("
     SELECT 
         u.*,
@@ -13,6 +13,7 @@ $stmt = $conn->query("
         SUM(o.total_pages) as total_pages_printed
     FROM users u
     LEFT JOIN orders o ON u.id = o.user_id AND o.payment_status = 'success'
+    WHERE u.role = 'user'
     GROUP BY u.id
     ORDER BY u.created_at DESC
 ");

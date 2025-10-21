@@ -193,23 +193,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     <img src="assets/logo-anyprint.jpeg" width="150px" alt="">
     </a>
     <p class="text-white text-sm">Smart Printing Solutions</p>
-    <div class="flex gap-3 items-center">
-      <?php if (isset($_SESSION['user_logged_in'])): ?>
-        <a href="dashboard.php" class="text-white text-sm font-medium">
-          <i class="fa-solid fa-user-circle mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_username']); ?>
+  <div class="flex gap-3 items-center">
+  <?php if (isset($_SESSION['user_logged_in'])): ?>
+    <!-- Dropdown Menu -->
+    <div class="relative">
+      <button id="userDropdownBtn" class="text-white hover:text-gray-200 text-sm font-medium flex items-center gap-1 cursor-pointer">
+        <i class="fa-solid fa-user-circle"></i>
+        <span><?php echo htmlspecialchars($_SESSION['user_username']); ?></span>
+        <i class="fa-solid fa-chevron-down text-xs"></i>
+      </button>
+      
+      <!-- Dropdown Content -->
+      <div id="userDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+        <a href="<?php echo $_SESSION['user_role'] === 'admin' ? 'admin/dashboard.php' : 'dashboard.php'; ?>" 
+           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <i class="fa-solid fa-dashboard mr-2"></i> Dashboard
         </a>
-        <a href="logout.php" class="text-red-600 hover:text-red-700 text-sm">
-          <i class="fa-solid fa-right-from-bracket"></i>
+        <hr class="my-1">
+        <a href="logout.php" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
         </a>
-      <?php else: ?>
-        <a href="login.php" class="text-white text-sm font-medium">
-          <i class="fa-solid fa-sign-in-alt mr-1"></i> Login
-        </a>
-        <a href="register.php" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
-          Register
-        </a>
-      <?php endif; ?>
+      </div>
     </div>
+  <?php else: ?>
+    <a href="login.php" class="text-white hover:text-gray-200 text-sm font-medium">
+      <i class="fa-solid fa-sign-in-alt mr-1"></i> Login
+    </a>
+    <a href="register.php" class="bg-white text-[#1151AB] px-4 py-2 rounded-lg hover:bg-gray-100 text-sm font-medium">
+      Register
+    </a>
+  <?php endif; ?>
+</div>
   </header>
 
 <small class="text-[#828275] mt-8 ms-8">Created By Group 50.</small>
@@ -357,6 +371,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['documents'])) {
     uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading ' + files.length + ' file(s)...';
     uploadBtn.disabled = true;
   });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dropdownButton = document.getElementById('userDropdownBtn');
+  const dropdownMenu = document.getElementById('userDropdownMenu');
+  
+  if (dropdownButton && dropdownMenu) {
+    // Toggle dropdown on click
+    dropdownButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('hidden');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        dropdownMenu.classList.add('hidden');
+      }
+    });
+  }
+});
 </script>
 
 </body>

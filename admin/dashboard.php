@@ -7,17 +7,18 @@ if (!isset($_SESSION['admin_logged_in'])) {
 }
 
 // Get statistics
-$stmt = $conn->query("SELECT COUNT(*) as total FROM orders");
+$stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE total_price > 0");
 $total_orders = $stmt->fetch_assoc()['total'];
 
-$stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE payment_status = 'success'");
+$stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE payment_status = 'success' AND total_price > 0");
 $success_payments = $stmt->fetch_assoc()['total'];
 
-$stmt = $conn->query("SELECT SUM(total_price) as total FROM orders WHERE payment_status = 'success'");
+$stmt = $conn->query("SELECT SUM(total_price) as total FROM orders WHERE payment_status = 'success' AND total_price > 0");
 $total_revenue = $stmt->fetch_assoc()['total'] ?: 0;
 
-$stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE order_status = 'pending'");
+$stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE order_status = 'pending' AND total_price > 0");
 $pending_orders = $stmt->fetch_assoc()['total'];
+
 
 // Get orders with pagination
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
@@ -28,7 +29,7 @@ $offset = ($page - 1) * $per_page;
 $filter_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $filter_payment = isset($_GET['payment']) ? sanitize($_GET['payment']) : '';
 
-$where = [];
+$where = ['total_price > 0'];
 $params = [];
 $types = '';
 
@@ -392,11 +393,11 @@ $orders = $stmt->get_result();
                   </div>
                   <div>
                     <p class="text-gray-500">Price per Page</p>
-                   <p class="font-semibold">Rp ${parseInt(data.order.price_per_page).toLocaleString('id-ID')}</p>
+          <p class="font-semibold">Rp ${parseInt(data.order.price_per_page).toLocaleString('id-ID')}</p>
                   </div>
                   <div>
                     <p class="text-gray-500">Total Price</p>
-                <p class="font-semibold text-blue-600">Rp ${parseInt(data.order.total_price).toLocaleString('id-ID')}</p>
+         <p class="font-semibold text-blue-600">Rp ${parseInt(data.order.total_price).toLocaleString('id-ID')}</p>
                   </div>
                 </div>
                 ${filesHtml}

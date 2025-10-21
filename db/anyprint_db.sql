@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `u1573484_anyprint`
+-- Database: `anyprint_db`
 --
 
 -- --------------------------------------------------------
@@ -33,7 +33,7 @@ CREATE TABLE `admins` (
   `password` varchar(255) NOT NULL,
   `full_name` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `admins`
@@ -63,7 +63,7 @@ CREATE TABLE `orders` (
   `customer_ip` varchar(45) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `orders`
@@ -71,7 +71,7 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`id`, `order_number`, `file_name`, `total_pages`, `paper_size`, `color_type`, `copies`, `price_per_page`, `total_price`, `payment_status`, `order_status`, `customer_ip`, `created_at`, `updated_at`) VALUES
 (6, 'ORD202510071159', NULL, 0, 'A4', 'Black & White', 1, 0.00, 0.00, 'pending', 'pending', '::1', '2025-10-07 14:41:46', '2025-10-07 14:41:46'),
-(7, 'ORD202510073683', NULL, 72, 'A3', 'Black & White', 2, 0.00, 43.20, 'pending', 'pending', '::1', '2025-10-07 14:50:30', '2025-10-07 14:55:27');
+(7, 'ORD202510073683', NULL, 72, 'Legal', 'Black & White', 2, 0.00, 43.20, 'pending', 'pending', '::1', '2025-10-07 14:50:30', '2025-10-07 14:55:27');
 
 -- --------------------------------------------------------
 
@@ -87,7 +87,7 @@ CREATE TABLE `order_files` (
   `file_pages` int DEFAULT '1',
   `file_path` varchar(500) DEFAULT NULL,
   `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -102,7 +102,7 @@ CREATE TABLE `payment_logs` (
   `amount` decimal(10,2) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
   `payment_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Indexes for dumped tables
